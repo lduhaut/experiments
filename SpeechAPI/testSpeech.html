@@ -1,0 +1,71 @@
+<html>
+	<head>
+	</head>
+	<body>
+		<h1>Test speech - test</h1>
+		
+		<div>Texte : <span id="texte"></span></div>
+		<div>Confidence : <span id="confidence">-</span>%</div>
+		
+		<button id="start_button" onclick="listen()">Listen</button>
+				
+		<button id="read_button" onclick="sayIt(txt.innerHTML)">Read me</button>
+	
+		<script>
+		var txt = document.getElementById('texte');
+		function sayIt(it) {
+			var utterThis = new SpeechSynthesisUtterance(it);
+			utterThis.voice='fr-FR';
+			utterThis.pitch = 1;
+			utterThis.rate = 1;
+			window.speechSynthesis.speak(utterThis);
+		}
+		
+// https://developers.google.com/web/updates/2013/01/Voice-Driven-Web-Apps-Introduction-to-the-Web-Speech-API
+		var recognition = new webkitSpeechRecognition();
+		recognition.lang = 'fr-FR';
+		recognition.continuous = true;
+		recognition.interimResults = true;
+		recognition.onstart = function() {
+			console.log('started');
+			listening=true;
+			txt.innerHTML = '';
+		};
+		
+		recognition.onresult = function(event) {
+			var transcript ='';
+			var tfinal = false;
+			for (var i = event.resultIndex; i < event.results.length; ++i) {
+				transcript += event.results[i][0].transcript;
+				tfinal = event.results[i].isFinal;
+				txt.style.color=tfinal?'green':'red';
+				
+				console.log('confidence : ' + event.results[i][0].confidence);
+				confidence.innerHTML = Math.round(100*event.results[i][0].confidence);
+			}
+		
+			console.log('Transcript : ' + transcript);
+			txt.innerHTML = transcript;
+			
+			if (tfinal && transcript.toLowerCase().indexOf('miroir') > -1 && transcript.toLowerCase().indexOf('beau') > -1)
+				sayIt("Sous peine d'être désagréable, je ne peux répondre à cette question !");
+		};
+		
+		recognition.onend = function() {
+			console.log('stopped');
+			listening=false;
+		};
+		  
+		var listening = false;
+		function listen() {
+			if (listening) {
+				console.log('recog stopping...');
+				recognition.stop();
+			} else {
+				console.log('recog starting...');
+				recognition.start();
+			}
+		}
+		</script>
+	</body>
+</html>
